@@ -1355,3 +1355,23 @@ render();
   loadSellerProducts();
 })();
 loadCategories(); loadStories();
+
+/* Remove the "Powered by Netlify" badge Netlify injects, so it never covers the menu or buttons */
+(function(){
+  function isBadge(el){
+    try{
+      if(!el||el.nodeType!==1||el===document.body||el===document.documentElement) return false;
+      if(/netlify/i.test(el.tagName||"")||/netlify/i.test(el.id||"")||/netlify/i.test(typeof el.className==="string"?el.className:"")) return true;
+      var t=(el.shadowRoot?el.shadowRoot.textContent:el.textContent)||"";
+      return /powered by netlify/i.test(t)&&t.length<120;
+    }catch(e){return false;}
+  }
+  function sweep(){
+    try{ Array.prototype.slice.call(document.body.children).forEach(function(el){ if(isBadge(el)) el.style.setProperty("display","none","important"); }); }catch(e){}
+  }
+  try{
+    new MutationObserver(sweep).observe(document.documentElement,{childList:true,subtree:false});
+    new MutationObserver(sweep).observe(document.body||document.documentElement,{childList:true});
+  }catch(e){}
+  sweep(); setTimeout(sweep,1000); setTimeout(sweep,4000);
+})();

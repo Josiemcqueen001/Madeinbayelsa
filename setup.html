@@ -19,17 +19,24 @@ button{width:100%;padding:13px;border:0;border-radius:12px;background:#0d6b3c;co
 <div class="card"><h2>2. Create the accounts</h2>
 <p>Each starts with the password you type here, and must choose its own password at first sign-in. Only works until a super admin exists.</p>
 <div id="rows"></div><button onclick="step('accounts')">Create accounts</button><div id="o2" class="out"></div></div>
+<div class="card"><h2>3. Restore a super admin</h2>
+<p>Use this if sign-in does not work. Only the two owner emails (sinteijosephine2@gmail.com and josephinesinteh@gmail.com) are allowed. It makes the email you enter a protected super admin and sets the password you type. You will choose a new password after you sign in.</p>
+<label>Super admin email</label><input id="re" type="email" autocomplete="off" value="sinteijosephine2@gmail.com">
+<label>Name</label><input id="rn" autocomplete="off" value="Josephine Sintei">
+<label>Temporary password</label><input id="rp" type="password" autocomplete="new-password">
+<button onclick="step('recover')">Restore super admin</button> <p>Do this once for each of the two emails.</p><div id="o3" class="out"></div></div>
 <p>When both steps say done, delete SETUP_KEY in Netlify. This page then stops working.</p>
 <script>
 const roles=[["super_admin","Super admin"],["admin","Admin"],["seller","Seller"],["customer","Buyer"]];
 document.getElementById('rows').innerHTML=roles.map(([r,l],i)=>`<div class="row"><b>${l}</b><label>Email</label><input id="e${i}" type="email" autocomplete="off"><label>Name</label><input id="n${i}" autocomplete="off"><label>Temporary password</label><input id="p${i}" type="password" autocomplete="new-password"></div>`).join('');
 async function step(a){
-  const o=document.getElementById(a==='migrate'?'o1':'o2');o.textContent='Working...';
+  const o=document.getElementById(a==='migrate'?'o1':a==='recover'?'o3':'o2');o.textContent='Working...';
   const body={key:document.getElementById('key').value,action:a};
   if(a==='accounts')body.accounts=roles.map(([r],i)=>({role:r,email:document.getElementById('e'+i).value,name:document.getElementById('n'+i).value,password:document.getElementById('p'+i).value}));
+  if(a==='recover'){body.email=document.getElementById('re').value;body.name=document.getElementById('rn').value;body.password=document.getElementById('rp').value;}
   try{const r=await fetch('/api/setup',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)});const d=await r.json();
     o.textContent=!r.ok?d.error:a==='migrate'?(d.applied.length?'Done. Built: '+d.applied.join(', '):'Done. The database was already up to date.'):'Done.\n'+d.results.join('\n');
-    if(r.ok&&a==='accounts')document.querySelectorAll('input[type=password]').forEach(x=>{if(x.id!=='key')x.value=''});
+    if(r.ok&&(a==='accounts'||a==='recover'))document.querySelectorAll('input[type=password]').forEach(x=>{if(x.id!=='key')x.value=''});
   }catch(e){o.textContent='Could not reach the server.';}
 }
 </script></main></body></html>
